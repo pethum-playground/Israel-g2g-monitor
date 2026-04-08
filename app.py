@@ -13,7 +13,8 @@ from datetime import datetime
 
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, render_template, request, jsonify, Response
+from functools import wraps
+from flask import Flask, render_template, request, jsonify, Response, session, redirect, url_for
 
 # ─── Config ──────────────────────────────────────────────────────
 SLBFE_URL = "https://services.slbfe.lk/Israel/WebPortal"
@@ -27,6 +28,10 @@ USER_AGENT = (
 )
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
+
+APP_USERNAME = os.environ.get("APP_USERNAME", "admin")
+APP_PASSWORD = os.environ.get("APP_PASSWORD", "admin")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -335,13 +340,44 @@ def monitoring_loop():
     state["monitoring"] = False
 
 
+# ─── Auth ────────────────────────────────────────────────────────
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("logged_in"):
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated
+
+
 # ─── Flask Routes ────────────────────────────────────────────────
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        if username == APP_USERNAME and password == APP_PASSWORD:
+            session["logged_in"] = True
+            return redirect(url_for("index"))
+        error = "Invalid username or password"
+    return render_template("login.html", error=error)
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
 @app.route("/")
+@login_required
 def index():
     return render_template("index.html")
 
 
 @app.route("/start", methods=["POST"])
+@login_required
 def start_monitoring():
     global monitor_thread
 
@@ -370,6 +406,7 @@ def start_monitoring():
 
 
 @app.route("/cancel", methods=["POST"])
+@login_required
 def cancel_alert():
     cancel_flag.set()
     stop_horn()
@@ -378,6 +415,7 @@ def cancel_alert():
 
 
 @app.route("/stop", methods=["POST"])
+@login_required
 def stop_monitoring():
     stop_flag.set()
     cancel_flag.set()
@@ -389,6 +427,7 @@ def stop_monitoring():
 
 
 @app.route("/status")
+@login_required
 def status_stream():
     def generate():
         last_index = 0
