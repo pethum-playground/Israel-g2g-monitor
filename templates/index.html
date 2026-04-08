@@ -58,49 +58,49 @@
 
     <form id="mainForm">
         <!-- PERSONAL DETAILS -->
-        <div class="section-card">
-            <div class="section-header">👤 PERSONAL DETAILS</div>
+        <div class="section-card" style="opacity: 0.5; pointer-events: none;">
+            <div class="section-header">👤 PERSONAL DETAILS <span class="badge bg-warning text-dark ms-2">Coming Soon</span></div>
             <div class="section-body">
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <label class="form-label">NIC Number <span class="req">*</span></label>
-                        <input type="text" class="form-control text-upper" name="nic" required>
+                        <label class="form-label">NIC Number</label>
+                        <input type="text" class="form-control text-upper" name="nic" disabled>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Passport Number <span class="req">*</span></label>
-                        <input type="text" class="form-control text-upper" name="pp_no" required>
+                        <label class="form-label">Passport Number</label>
+                        <input type="text" class="form-control text-upper" name="pp_no" disabled>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Date of Birth <span class="req">*</span></label>
-                        <input type="date" class="form-control" name="dob" required>
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" class="form-control" name="dob" disabled>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">Gender <span class="req">*</span></label>
-                        <select class="form-select" name="gender" required>
+                        <label class="form-label">Gender</label>
+                        <select class="form-select" name="gender" disabled>
                             <option value="">-Select-</option>
                             <option value="M">Male</option>
                             <option value="F">Female</option>
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Surname (Last Name) <span class="req">*</span></label>
-                        <input type="text" class="form-control text-upper" name="lname" required>
+                        <label class="form-label">Surname (Last Name)</label>
+                        <input type="text" class="form-control text-upper" name="lname" disabled>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Other Name (First Name) <span class="req">*</span></label>
-                        <input type="text" class="form-control text-upper" name="fname" required>
+                        <label class="form-label">Other Name (First Name)</label>
+                        <input type="text" class="form-control text-upper" name="fname" disabled>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Father's Name (Full Name) <span class="req">*</span></label>
-                        <input type="text" class="form-control text-upper" name="farthers_name" required>
+                        <label class="form-label">Father's Name (Full Name)</label>
+                        <input type="text" class="form-control text-upper" name="farthers_name" disabled>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Passport Expire Date <span class="req">*</span></label>
-                        <input type="date" class="form-control" name="pp_expire_date" required>
+                        <label class="form-label">Passport Expire Date</label>
+                        <input type="date" class="form-control" name="pp_expire_date" disabled>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Marital Status <span class="req">*</span></label>
-                        <select class="form-select" name="civil_status" id="civilStatus" required>
+                        <label class="form-label">Marital Status</label>
+                        <select class="form-select" name="civil_status" id="civilStatus" disabled>
                             <option value="">-Select-</option>
                             <option value="M">Married</option>
                             <option value="UM">Single</option>
@@ -114,61 +114,61 @@
 
         <!-- PARTNER DETAILS -->
         <div class="section-card" id="partnerSection" style="display: none;">
-            <div class="section-header">👥 PARTNER DETAILS (Husband/Wife)</div>
+            <div class="section-header">👥 PARTNER DETAILS (Husband/Wife) <span class="badge bg-warning text-dark ms-2">Coming Soon</span></div>
             <div class="section-body">
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <label class="form-label">Partner's NIC <span class="req">*</span></label>
-                        <input type="text" class="form-control text-upper" name="Partner_nic">
+                        <label class="form-label">Partner's NIC</label>
+                        <input type="text" class="form-control text-upper" name="Partner_nic" disabled>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Partner's Passport</label>
-                        <input type="text" class="form-control text-upper" name="Partner_ppno">
+                        <input type="text" class="form-control text-upper" name="Partner_ppno" disabled>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Partner's Date of Birth <span class="req">*</span></label>
-                        <input type="date" class="form-control" name="Partner_dob">
+                        <label class="form-label">Partner's Date of Birth</label>
+                        <input type="date" class="form-control" name="Partner_dob" disabled>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Partner's Last Name <span class="req">*</span></label>
-                        <input type="text" class="form-control text-upper" name="Partner_lname">
+                        <label class="form-label">Partner's Last Name</label>
+                        <input type="text" class="form-control text-upper" name="Partner_lname" disabled>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Partner's First Name <span class="req">*</span></label>
-                        <input type="text" class="form-control text-upper" name="Partner_fname">
+                        <label class="form-label">Partner's First Name</label>
+                        <input type="text" class="form-control text-upper" name="Partner_fname" disabled>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- CONTACT DETAILS -->
-        <div class="section-card">
-            <div class="section-header">📞 CONTACT DETAILS</div>
+        <div class="section-card" style="opacity: 0.5; pointer-events: none;">
+            <div class="section-header">📞 CONTACT DETAILS <span class="badge bg-warning text-dark ms-2">Coming Soon</span></div>
             <div class="section-body">
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <label class="form-label">Mobile Number <span class="req">*</span></label>
-                        <input type="text" class="form-control" name="mobile1" placeholder="07XXXXXXXX" required>
+                        <label class="form-label">Mobile Number</label>
+                        <input type="text" class="form-control" name="mobile1" placeholder="07XXXXXXXX" disabled>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Mobile Number 2 <span class="req">*</span></label>
-                        <input type="text" class="form-control" name="mobile2" placeholder="07XXXXXXXX" required>
+                        <label class="form-label">Mobile Number 2</label>
+                        <input type="text" class="form-control" name="mobile2" placeholder="07XXXXXXXX" disabled>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Address Line 1 <span class="req">*</span></label>
-                        <input type="text" class="form-control text-upper" name="add1" required>
+                        <label class="form-label">Address Line 1</label>
+                        <input type="text" class="form-control text-upper" name="add1" disabled>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Address Line 2 <span class="req">*</span></label>
-                        <input type="text" class="form-control text-upper" name="add2" required>
+                        <label class="form-label">Address Line 2</label>
+                        <input type="text" class="form-control text-upper" name="add2" disabled>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Town <span class="req">*</span></label>
-                        <input type="text" class="form-control text-upper" name="town" required>
+                        <label class="form-label">Town</label>
+                        <input type="text" class="form-control text-upper" name="town" disabled>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">District <span class="req">*</span></label>
-                        <select class="form-select" name="district" required>
+                        <label class="form-label">District</label>
+                        <select class="form-select" name="district" disabled>
                             <option value="">-Select District-</option>
                             <option value="15">Ampara</option>
                             <option value="19">Anuradhapura</option>
@@ -221,17 +221,17 @@
                         <input type="number" class="form-control" name="check_interval" value="5" min="3" max="600">
                     </div>
                     <div class="col-12">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="autoSubmitToggle" name="auto_submit_enabled">
+                        <div class="form-check form-switch" style="opacity: 0.5;">
+                            <input class="form-check-input" type="checkbox" id="autoSubmitToggle" name="auto_submit_enabled" disabled>
                             <label class="form-check-label fw-bold" for="autoSubmitToggle">
-                                Enable Auto-Submit after countdown
+                                Enable Auto-Submit after countdown <span class="badge bg-warning text-dark ms-1">Coming Soon</span>
                             </label>
                         </div>
                         <div class="auto-submit-options" id="autoSubmitOptions">
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label class="form-label">Auto-submit Delay (seconds)</label>
-                                    <input type="number" class="form-control" name="auto_submit_delay" value="60" min="10" max="600">
+                                    <input type="number" class="form-control" name="auto_submit_delay" value="60" min="10" max="600" disabled>
                                     <small class="text-muted">Time to cancel before form auto-submits</small>
                                 </div>
                                 <div class="col-md-8">
@@ -345,21 +345,6 @@
     // ─── Form Submit → Start Monitoring ─────────────────────────
     document.getElementById('mainForm').addEventListener('submit', function(e) {
         e.preventDefault();
-
-        // Validate mobile numbers
-        const mob1 = document.querySelector('[name="mobile1"]').value;
-        const mob2 = document.querySelector('[name="mobile2"]').value;
-        if (!/^07\d{8}$/.test(mob1) || !/^07\d{8}$/.test(mob2)) {
-            alert('Please enter valid mobile numbers (Format: 07XXXXXXXX)');
-            return;
-        }
-
-        // Validate NIC
-        const nic = document.querySelector('[name="nic"]').value;
-        if (!/^[0-9]{9}[vVxX]$/.test(nic) && !/^[0-9]{12}$/.test(nic)) {
-            alert('Invalid NIC format. Use 9 digits + V/X or 12 digits.');
-            return;
-        }
 
         // Collect form data
         const formData = {};
