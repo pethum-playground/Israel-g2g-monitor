@@ -251,6 +251,9 @@
             <button type="submit" class="btn btn-start btn-lg" id="btnStart">
                 Start Monitoring
             </button>
+            <button type="button" class="btn btn-outline-warning btn-lg ms-2" id="btnTest" onclick="testAlert()">
+                Test Alert
+            </button>
         </div>
     </form>
 
@@ -280,7 +283,42 @@
 
 <script>
     let eventSource = null;
+    let hornAudioCtx = null;
+    let hornPlaying = false;
 
+    // ─── Browser Horn Sound (Web Audio API) ─────────────────────
+    function createHornOscillators(ctx) {
+        const frequencies = [150, 200, 250, 300];
+        const gain = ctx.createGain();
+        gain.gain.value = 0.7;
+        gain.connect(ctx.destination);
+
+        return frequencies.map(freq => {
+            const osc = ctx.createOscillator();
+            osc.type = 'sawtooth';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            return osc;
+        });
+    }
+
+    function startHorn() {
+        if (hornPlaying) return;
+        hornPlaying = true;
+        hornAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillators = createHornOscillators(hornAudioCtx);
+        oscillators.forEach(osc => osc.start());
+    }
+
+    function stopHorn() {
+        hornPlaying = false;
+        if (hornAudioCtx) {
+            hornAudioCtx.close().catch(() => {});
+            hornAudioCtx = null;
+        }
+    }
+
+    // ─── Form Interactions ──────────────────────────────────────
     // Auto-uppercase
     document.querySelectorAll('.text-upper').forEach(el => {
         el.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
@@ -296,7 +334,15 @@
         document.getElementById('autoSubmitOptions').style.display = this.checked ? 'block' : 'none';
     });
 
-    // Form submit -> start monitoring
+    // ─── Test Alert ─────────────────────────────────────────────
+    function testAlert() {
+        document.getElementById('statusPanel').style.display = 'block';
+        document.getElementById('logArea').innerHTML = '';
+        startSSE();
+        fetch('/test-alert', { method: 'POST' });
+    }
+
+    // ─── Form Submit → Start Monitoring ─────────────────────────
     document.getElementById('mainForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -348,6 +394,7 @@
         });
     });
 
+    // ─── SSE Listener ───────────────────────────────────────────
     function startSSE() {
         if (eventSource) eventSource.close();
         eventSource = new EventSource('/status');
@@ -364,11 +411,16 @@
             document.getElementById('statusBadge').textContent = 'SECTOR FOUND!';
             document.getElementById('btnCancel').style.display = 'inline-block';
             document.getElementById('countdown').style.display = 'block';
+            startHorn();
         });
 
         eventSource.addEventListener('countdown', function(e) {
             const data = JSON.parse(e.data);
             document.getElementById('countdown').textContent = data.message;
+        });
+
+        eventSource.addEventListener('horn_stop', function(e) {
+            stopHorn();
         });
 
         eventSource.addEventListener('status', function(e) {
@@ -413,6 +465,7 @@
     }
 
     function cancelAlert() {
+        stopHorn();
         fetch('/cancel', { method: 'POST' }).then(() => {
             document.getElementById('countdown').style.display = 'none';
             document.getElementById('btnCancel').style.display = 'none';
@@ -422,12 +475,14 @@
     }
 
     function stopMonitoring() {
+        stopHorn();
         fetch('/stop', { method: 'POST' }).then(() => {
             resetUI();
         });
     }
 
     function resetUI() {
+        stopHorn();
         if (eventSource) { eventSource.close(); eventSource = null; }
         document.getElementById('btnStart').disabled = false;
         document.getElementById('btnStart').textContent = 'Start Monitoring';

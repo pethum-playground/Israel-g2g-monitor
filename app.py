@@ -1,14 +1,8 @@
 import os
 import json
 import time
-import wave
-import math
-import struct
-import signal
 import logging
 import threading
-import subprocess
-from pathlib import Path
 from datetime import datetime
 
 import requests
@@ -19,8 +13,6 @@ from flask import Flask, render_template, request, jsonify, Response, session, r
 # ─── Config ──────────────────────────────────────────────────────
 SLBFE_URL = "https://services.slbfe.lk/Israel/WebPortal"
 SELECT_ID = "JobSector_ID"
-SCRIPT_DIR = Path(__file__).parent
-HORN_FILE = SCRIPT_DIR / "horn.wav"
 
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -58,66 +50,8 @@ state = {
 
 events = []  # SSE event queue
 monitor_thread = None
-horn_process = None
 cancel_flag = threading.Event()
 stop_flag = threading.Event()
-
-
-# ─── Horn Sound ──────────────────────────────────────────────────
-def generate_horn_sound():
-    if HORN_FILE.exists():
-        return
-    log.info("Generating horn sound...")
-    sample_rate = 44100
-    duration = 1.5
-    num_samples = int(sample_rate * duration)
-    frequencies = [150, 200, 250, 300]
-    amplitude = 30000
-    samples = []
-    for i in range(num_samples):
-        t = i / sample_rate
-        if t < 0.05:
-            envelope = t / 0.05
-        elif t > duration - 0.1:
-            envelope = (duration - t) / 0.1
-        else:
-            envelope = 1.0
-        value = sum(math.sin(2 * math.pi * f * t) for f in frequencies)
-        value = value / len(frequencies) * amplitude * envelope
-        samples.append(int(value))
-    with wave.open(str(HORN_FILE), "w") as f:
-        f.setnchannels(1)
-        f.setsampwidth(2)
-        f.setframerate(sample_rate)
-        f.writeframes(struct.pack(f"<{num_samples}h", *samples))
-    log.info("Horn sound generated.")
-
-
-def start_horn():
-    global horn_process
-
-    def loop():
-        global horn_process
-        while state["alert_active"] and not cancel_flag.is_set():
-            try:
-                horn_process = subprocess.Popen(["afplay", str(HORN_FILE)])
-                horn_process.wait()
-            except Exception:
-                break
-
-    threading.Thread(target=loop, daemon=True).start()
-
-
-def stop_horn():
-    global horn_process
-    state["alert_active"] = False
-    if horn_process:
-        try:
-            horn_process.terminate()
-            horn_process.kill()
-        except Exception:
-            pass
-        horn_process = None
 
 
 # ─── Page Scraping ───────────────────────────────────────────────
@@ -290,10 +224,7 @@ def monitoring_loop():
                 state["matched_sector_value"] = matched_value
                 cancel_flag.clear()
 
-                # Start horn
-                start_horn()
-
-                # Countdown
+                # Countdown (horn plays in browser via SSE 'found' event)
                 state["countdown"] = delay
                 while state["countdown"] > 0 and not cancel_flag.is_set():
                     push_event("countdown", str(state["countdown"]))
@@ -301,13 +232,15 @@ def monitoring_loop():
                     state["countdown"] -= 1
 
                 if cancel_flag.is_set():
-                    stop_horn()
+                    state["alert_active"] = False
+                    push_event("horn_stop", "stop")
                     push_event("status", "Alert cancelled. Resuming monitoring...")
                     cancel_flag.clear()
                     continue
 
                 # Countdown finished
-                stop_horn()
+                state["alert_active"] = False
+                push_event("horn_stop", "stop")
 
                 if auto_submit_on:
                     push_event("status", "Countdown finished. Auto-submitting...")
@@ -409,8 +342,9 @@ def start_monitoring():
 @login_required
 def cancel_alert():
     cancel_flag.set()
-    stop_horn()
+    state["alert_active"] = False
     state["countdown"] = 0
+    push_event("horn_stop", "stop")
     return jsonify({"status": "cancelled"})
 
 
@@ -419,11 +353,36 @@ def cancel_alert():
 def stop_monitoring():
     stop_flag.set()
     cancel_flag.set()
-    stop_horn()
+    state["alert_active"] = False
     state["monitoring"] = False
     state["countdown"] = 0
+    push_event("horn_stop", "stop")
     push_event("status", "Monitoring stopped by user.")
     return jsonify({"status": "stopped"})
+
+
+@app.route("/test-alert", methods=["POST"])
+@login_required
+def test_alert():
+    push_event("found", "TEST ALERT: Simulating sector found!")
+    push_event("countdown", "5")
+    state["alert_active"] = True
+    state["countdown"] = 5
+
+    def test_countdown():
+        for i in range(4, 0, -1):
+            time.sleep(1)
+            if not state["alert_active"]:
+                push_event("horn_stop", "stop")
+                return
+            push_event("countdown", str(i))
+        time.sleep(1)
+        state["alert_active"] = False
+        push_event("horn_stop", "stop")
+        push_event("status", "Test alert finished.")
+
+    threading.Thread(target=test_countdown, daemon=True).start()
+    return jsonify({"status": "testing"})
 
 
 @app.route("/status")
@@ -454,7 +413,6 @@ def status_stream():
 
 # ─── Main ────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    generate_horn_sound()
     log.info("Starting SLBFE Monitor Web App on http://localhost:5000")
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=False, port=port, threaded=True)
