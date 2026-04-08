@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLBFE Israel G2G - Monitor & Auto-Submit</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .main-header { background: linear-gradient(135deg, #1a3a5c, #2d6a9f); color: white; padding: 20px; border-radius: 10px; margin-bottom: 25px; text-align: center; }
+        .main-header h2 { margin: 0; font-size: 1.4rem; }
+        .section-card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; overflow: hidden; }
+        .section-header { background: #2d6a9f; color: white; padding: 10px 20px; font-weight: 600; font-size: 0.95rem; }
+        .section-header.config { background: #e67e22; }
+        .section-header.status { background: #27ae60; }
+        .section-body { padding: 20px; }
+        .form-label { font-weight: 600; font-size: 0.85rem; color: #333; margin-bottom: 3px; }
+        .form-label .req { color: red; }
+        .form-control, .form-select { font-size: 0.9rem; }
+        .btn-start { background: #27ae60; border: none; color: white; font-weight: 600; padding: 12px 40px; font-size: 1rem; }
+        .btn-start:hover { background: #219a52; color: white; }
+        .btn-cancel { background: #e74c3c; border: none; color: white; font-weight: 600; }
+        .btn-cancel:hover { background: #c0392b; color: white; }
+        .btn-stop { background: #7f8c8d; border: none; color: white; font-weight: 600; }
+        .btn-stop:hover { background: #636e72; color: white; }
+
+        /* Status Panel */
+        #statusPanel { display: none; }
+        .status-badge { font-size: 1.1rem; font-weight: 700; padding: 8px 20px; border-radius: 20px; display: inline-block; }
+        .badge-idle { background: #dfe6e9; color: #636e72; }
+        .badge-monitoring { background: #74b9ff; color: #0056b3; animation: pulse 2s infinite; }
+        .badge-found { background: #ff7675; color: #d63031; animation: flash 0.5s infinite; }
+        .badge-submitting { background: #fdcb6e; color: #e17055; animation: pulse 1s infinite; }
+        .badge-done { background: #00b894; color: white; }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        #countdown { font-size: 4rem; font-weight: 900; color: #d63031; text-align: center; display: none; }
+        #logArea { height: 200px; overflow-y: auto; background: #1e1e1e; color: #00ff41; font-family: monospace; font-size: 0.8rem; padding: 10px; border-radius: 8px; }
+        .log-check { color: #74b9ff; }
+        .log-found { color: #ff7675; font-weight: bold; }
+        .log-error { color: #fdcb6e; }
+        .log-status { color: #a29bfe; }
+        .log-alert { color: #00ff41; font-weight: bold; }
+
+        .auto-submit-options { display: none; margin-top: 10px; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107; }
+    </style>
+</head>
+<body>
+<div class="container py-4" style="max-width: 900px;">
+
+    <div class="main-header">
+        <h2>SLBFE Israel G2G Program — Monitor & Auto-Submit</h2>
+        <small>Fill your details below, choose the sector to watch for, and start monitoring</small>
+    </div>
+
+    <form id="mainForm">
+        <!-- PERSONAL DETAILS -->
+        <div class="section-card">
+            <div class="section-header">👤 PERSONAL DETAILS</div>
+            <div class="section-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">NIC Number <span class="req">*</span></label>
+                        <input type="text" class="form-control text-upper" name="nic" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Passport Number <span class="req">*</span></label>
+                        <input type="text" class="form-control text-upper" name="pp_no" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Date of Birth <span class="req">*</span></label>
+                        <input type="date" class="form-control" name="dob" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Gender <span class="req">*</span></label>
+                        <select class="form-select" name="gender" required>
+                            <option value="">-Select-</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Surname (Last Name) <span class="req">*</span></label>
+                        <input type="text" class="form-control text-upper" name="lname" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Other Name (First Name) <span class="req">*</span></label>
+                        <input type="text" class="form-control text-upper" name="fname" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Father's Name (Full Name) <span class="req">*</span></label>
+                        <input type="text" class="form-control text-upper" name="farthers_name" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Passport Expire Date <span class="req">*</span></label>
+                        <input type="date" class="form-control" name="pp_expire_date" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Marital Status <span class="req">*</span></label>
+                        <select class="form-select" name="civil_status" id="civilStatus" required>
+                            <option value="">-Select-</option>
+                            <option value="M">Married</option>
+                            <option value="UM">Single</option>
+                            <option value="D">Divorced</option>
+                            <option value="LS">Widowed</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PARTNER DETAILS -->
+        <div class="section-card" id="partnerSection" style="display: none;">
+            <div class="section-header">👥 PARTNER DETAILS (Husband/Wife)</div>
+            <div class="section-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Partner's NIC <span class="req">*</span></label>
+                        <input type="text" class="form-control text-upper" name="Partner_nic">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Partner's Passport</label>
+                        <input type="text" class="form-control text-upper" name="Partner_ppno">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Partner's Date of Birth <span class="req">*</span></label>
+                        <input type="date" class="form-control" name="Partner_dob">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Partner's Last Name <span class="req">*</span></label>
+                        <input type="text" class="form-control text-upper" name="Partner_lname">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Partner's First Name <span class="req">*</span></label>
+                        <input type="text" class="form-control text-upper" name="Partner_fname">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTACT DETAILS -->
+        <div class="section-card">
+            <div class="section-header">📞 CONTACT DETAILS</div>
+            <div class="section-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Mobile Number <span class="req">*</span></label>
+                        <input type="text" class="form-control" name="mobile1" placeholder="07XXXXXXXX" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Mobile Number 2 <span class="req">*</span></label>
+                        <input type="text" class="form-control" name="mobile2" placeholder="07XXXXXXXX" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Address Line 1 <span class="req">*</span></label>
+                        <input type="text" class="form-control text-upper" name="add1" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Address Line 2 <span class="req">*</span></label>
+                        <input type="text" class="form-control text-upper" name="add2" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Town <span class="req">*</span></label>
+                        <input type="text" class="form-control text-upper" name="town" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">District <span class="req">*</span></label>
+                        <select class="form-select" name="district" required>
+                            <option value="">-Select District-</option>
+                            <option value="15">Ampara</option>
+                            <option value="19">Anuradhapura</option>
+                            <option value="21">Badulla</option>
+                            <option value="14">Batticaloa</option>
+                            <option value="01">Colombo</option>
+                            <option value="07">Galle</option>
+                            <option value="02">Gampaha</option>
+                            <option value="09">Hambantota</option>
+                            <option value="10">Jaffna</option>
+                            <option value="03">Kalutara</option>
+                            <option value="04">Kandy</option>
+                            <option value="24">Kegalle</option>
+                            <option value="25">Kilinochchi</option>
+                            <option value="17">Kurunegala</option>
+                            <option value="11">Mannar</option>
+                            <option value="05">Matale</option>
+                            <option value="08">Matara</option>
+                            <option value="22">Monaragala</option>
+                            <option value="13">Mullative</option>
+                            <option value="06">Nuwara Eliya</option>
+                            <option value="20">Polonnaruwa</option>
+                            <option value="18">Puttalum</option>
+                            <option value="23">Rathnapura</option>
+                            <option value="16">Trincomalee</option>
+                            <option value="12">Vavuniya</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MONITORING CONFIG -->
+        <div class="section-card">
+            <div class="section-header config">⚙ MONITORING CONFIGURATION</div>
+            <div class="section-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Watch for Sector <span class="req">*</span></label>
+                        <input type="text" class="form-control" name="target_sector" value="Hotel" placeholder="e.g. Hotel" required>
+                        <small class="text-muted">Case-insensitive partial match</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Job Category to Select</label>
+                        <input type="text" class="form-control" name="target_job_category" placeholder="e.g. Room Attendant">
+                        <small class="text-muted">Will auto-select matching category</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Check Interval (seconds)</label>
+                        <input type="number" class="form-control" name="check_interval" value="5" min="3" max="600">
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="autoSubmitToggle" name="auto_submit_enabled">
+                            <label class="form-check-label fw-bold" for="autoSubmitToggle">
+                                Enable Auto-Submit after countdown
+                            </label>
+                        </div>
+                        <div class="auto-submit-options" id="autoSubmitOptions">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Auto-submit Delay (seconds)</label>
+                                    <input type="number" class="form-control" name="auto_submit_delay" value="60" min="10" max="600">
+                                    <small class="text-muted">Time to cancel before form auto-submits</small>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="alert alert-warning mb-0 mt-4">
+                                        <strong>Warning:</strong> When enabled, the form will be automatically submitted via browser after the countdown. Make sure all your details are correct!
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="text-center mb-4">
+            <button type="submit" class="btn btn-start btn-lg" id="btnStart">
+                Start Monitoring
+            </button>
+        </div>
+    </form>
+
+    <!-- STATUS PANEL -->
+    <div id="statusPanel">
+        <div class="section-card">
+            <div class="section-header status">📡 MONITORING STATUS</div>
+            <div class="section-body">
+                <div class="text-center mb-3">
+                    <span class="status-badge badge-monitoring" id="statusBadge">Monitoring...</span>
+                </div>
+                <div id="countdown"></div>
+                <div class="text-center mb-3">
+                    <button class="btn btn-cancel btn-lg me-2" id="btnCancel" style="display: none;" onclick="cancelAlert()">
+                        Cancel Alert
+                    </button>
+                    <button class="btn btn-stop" id="btnStop" onclick="stopMonitoring()">
+                        Stop Monitoring
+                    </button>
+                </div>
+                <div id="logArea"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let eventSource = null;
+
+    // Auto-uppercase
+    document.querySelectorAll('.text-upper').forEach(el => {
+        el.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+    });
+
+    // Toggle partner details
+    document.getElementById('civilStatus').addEventListener('change', function() {
+        document.getElementById('partnerSection').style.display = this.value === 'M' ? 'block' : 'none';
+    });
+
+    // Toggle auto-submit options
+    document.getElementById('autoSubmitToggle').addEventListener('change', function() {
+        document.getElementById('autoSubmitOptions').style.display = this.checked ? 'block' : 'none';
+    });
+
+    // Form submit -> start monitoring
+    document.getElementById('mainForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Validate mobile numbers
+        const mob1 = document.querySelector('[name="mobile1"]').value;
+        const mob2 = document.querySelector('[name="mobile2"]').value;
+        if (!/^07\d{8}$/.test(mob1) || !/^07\d{8}$/.test(mob2)) {
+            alert('Please enter valid mobile numbers (Format: 07XXXXXXXX)');
+            return;
+        }
+
+        // Validate NIC
+        const nic = document.querySelector('[name="nic"]').value;
+        if (!/^[0-9]{9}[vVxX]$/.test(nic) && !/^[0-9]{12}$/.test(nic)) {
+            alert('Invalid NIC format. Use 9 digits + V/X or 12 digits.');
+            return;
+        }
+
+        // Collect form data
+        const formData = {};
+        const form = new FormData(this);
+        for (const [key, value] of form.entries()) {
+            formData[key] = value;
+        }
+        formData.auto_submit_enabled = document.getElementById('autoSubmitToggle').checked;
+
+        // Disable form and show status
+        document.getElementById('btnStart').disabled = true;
+        document.getElementById('btnStart').textContent = 'Monitoring...';
+        document.getElementById('statusPanel').style.display = 'block';
+        document.getElementById('logArea').innerHTML = '';
+
+        // Start SSE
+        startSSE();
+
+        // POST to /start
+        fetch('/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData),
+        }).then(r => r.json()).then(data => {
+            if (data.error) {
+                alert(data.error);
+                resetUI();
+            }
+        }).catch(err => {
+            alert('Failed to start: ' + err);
+            resetUI();
+        });
+    });
+
+    function startSSE() {
+        if (eventSource) eventSource.close();
+        eventSource = new EventSource('/status');
+
+        eventSource.addEventListener('check', function(e) {
+            const data = JSON.parse(e.data);
+            appendLog(data.message, 'log-check');
+        });
+
+        eventSource.addEventListener('found', function(e) {
+            const data = JSON.parse(e.data);
+            appendLog(data.message, 'log-found');
+            document.getElementById('statusBadge').className = 'status-badge badge-found';
+            document.getElementById('statusBadge').textContent = 'SECTOR FOUND!';
+            document.getElementById('btnCancel').style.display = 'inline-block';
+            document.getElementById('countdown').style.display = 'block';
+        });
+
+        eventSource.addEventListener('countdown', function(e) {
+            const data = JSON.parse(e.data);
+            document.getElementById('countdown').textContent = data.message;
+        });
+
+        eventSource.addEventListener('status', function(e) {
+            const data = JSON.parse(e.data);
+            appendLog(data.message, 'log-status');
+        });
+
+        eventSource.addEventListener('alert', function(e) {
+            const data = JSON.parse(e.data);
+            appendLog(data.message, 'log-alert');
+        });
+
+        eventSource.addEventListener('error_msg', function(e) {
+            const data = JSON.parse(e.data);
+            appendLog(data.message, 'log-error');
+        });
+
+        eventSource.addEventListener('heartbeat', function(e) {
+            const data = JSON.parse(e.data);
+            if (data.submitting) {
+                document.getElementById('statusBadge').className = 'status-badge badge-submitting';
+                document.getElementById('statusBadge').textContent = 'Submitting...';
+                document.getElementById('countdown').style.display = 'none';
+                document.getElementById('btnCancel').style.display = 'none';
+            }
+            if (data.submitted) {
+                document.getElementById('statusBadge').className = 'status-badge badge-done';
+                document.getElementById('statusBadge').textContent = 'Submitted!';
+            }
+            if (!data.monitoring && !data.submitting) {
+                document.getElementById('btnStart').disabled = false;
+                document.getElementById('btnStart').textContent = 'Start Monitoring';
+            }
+        });
+    }
+
+    function appendLog(msg, cls) {
+        const log = document.getElementById('logArea');
+        const time = new Date().toLocaleTimeString();
+        log.innerHTML += `<div class="${cls}">[${time}] ${msg}</div>`;
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function cancelAlert() {
+        fetch('/cancel', { method: 'POST' }).then(() => {
+            document.getElementById('countdown').style.display = 'none';
+            document.getElementById('btnCancel').style.display = 'none';
+            document.getElementById('statusBadge').className = 'status-badge badge-monitoring';
+            document.getElementById('statusBadge').textContent = 'Monitoring...';
+        });
+    }
+
+    function stopMonitoring() {
+        fetch('/stop', { method: 'POST' }).then(() => {
+            resetUI();
+        });
+    }
+
+    function resetUI() {
+        if (eventSource) { eventSource.close(); eventSource = null; }
+        document.getElementById('btnStart').disabled = false;
+        document.getElementById('btnStart').textContent = 'Start Monitoring';
+        document.getElementById('statusBadge').className = 'status-badge badge-idle';
+        document.getElementById('statusBadge').textContent = 'Stopped';
+        document.getElementById('countdown').style.display = 'none';
+        document.getElementById('btnCancel').style.display = 'none';
+    }
+</script>
+</body>
+</html>
