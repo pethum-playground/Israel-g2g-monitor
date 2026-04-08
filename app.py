@@ -72,9 +72,10 @@ def fetch_sectors():
 
 
 def check_for_target(sectors, target):
-    target_lower = target.lower()
+    keywords = [k.strip().lower() for k in target.split(",") if k.strip()]
     for val, text in sectors.items():
-        if target_lower in text.lower():
+        text_lower = text.lower()
+        if any(kw in text_lower for kw in keywords):
             return val, text
     return None, None
 
